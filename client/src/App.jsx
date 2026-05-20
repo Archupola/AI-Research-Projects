@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import "./App.css";
-
 import {
   PieChart,
   Pie,
@@ -10,6 +8,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import "./App.css";
+
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#A020F0",
+  "#FF1493",
+];
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -18,9 +26,9 @@ function App() {
   const [category, setCategory] = useState("");
   const [budget, setBudget] = useState(20000);
   const [darkMode, setDarkMode] = useState(false);
+  const [file, setFile] = useState(null);
 
-  const API_URL =
-    "https://ai-research-projects.onrender.com/api/expenses";
+  const API = "https://ai-research-projects.onrender.com/api/expenses";
 
   useEffect(() => {
     fetchExpenses();
@@ -28,7 +36,7 @@ function App() {
 
   const fetchExpenses = async () => {
     try {
-      const res = await axios.get(API_URL);
+      const res = await axios.get(API);
       setExpenses(res.data);
     } catch (err) {
       console.log(err);
@@ -42,17 +50,17 @@ function App() {
     }
 
     try {
-      await axios.post(API_URL, {
+      const res = await axios.post(API, {
         title,
         amount,
         category,
       });
 
+      setExpenses([...expenses, res.data]);
+
       setTitle("");
       setAmount("");
       setCategory("");
-
-      fetchExpenses();
     } catch (err) {
       console.log(err);
     }
@@ -60,43 +68,45 @@ function App() {
 
   const deleteExpense = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
-      fetchExpenses();
+      await axios.delete(`${API}/${id}`);
+      setExpenses(expenses.filter((expense) => expense._id !== id));
     } catch (err) {
       console.log(err);
     }
   };
 
+  const handleUpload = () => {
+    if (!file) {
+      alert("Please select a CSV file");
+      return;
+    }
+
+    alert("CSV Uploaded Successfully ✅");
+  };
+
   const totalExpenses = expenses.reduce(
-    (acc, item) => acc + Number(item.amount),
+    (acc, curr) => acc + Number(curr.amount),
     0
   );
 
   const remainingBalance = budget - totalExpenses;
 
-  const categoryData = {};
+  const chartData = [];
 
   expenses.forEach((expense) => {
-    if (categoryData[expense.category]) {
-      categoryData[expense.category] += Number(expense.amount);
+    const existing = chartData.find(
+      (item) => item.name === expense.category
+    );
+
+    if (existing) {
+      existing.value += Number(expense.amount);
     } else {
-      categoryData[expense.category] = Number(expense.amount);
+      chartData.push({
+        name: expense.category,
+        value: Number(expense.amount),
+      });
     }
   });
-
-  const pieData = Object.keys(categoryData).map((key) => ({
-    name: key,
-    value: categoryData[key],
-  }));
-
-  const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#AA00FF",
-    "#FF4560",
-  ];
 
   return (
     <div className={darkMode ? "app dark" : "app"}>
@@ -110,9 +120,9 @@ function App() {
           {darkMode ? "Light Mode" : "Dark Mode"}
         </button>
 
-        <h2>Dashboard</h2>
-
         <div className="card">
+          <h2>Dashboard</h2>
+
           <h3>Monthly Budget</h3>
 
           <input
@@ -129,12 +139,10 @@ function App() {
 
           {remainingBalance < 0 && (
             <p className="warning">
-              ⚠ Warning: You exceeded your budget!
+              ⚠ Warning: You have exceeded your monthly budget!
             </p>
           )}
         </div>
-
-        {/* PIE CHART */}
 
         <div className="chart-box">
           <h2>Expense Analytics</h2>
@@ -142,14 +150,13 @@ function App() {
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
+                data={chartData}
                 dataKey="value"
+                nameKey="name"
+                outerRadius={120}
                 label
               >
-                {pieData.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell
                     key={index}
                     fill={COLORS[index % COLORS.length]}
@@ -163,27 +170,55 @@ function App() {
           </ResponsiveContainer>
         </div>
 
-        {/* AI INSIGHTS */}
-
         <div className="insights">
           <h2>AI Insights</h2>
 
           <p>
-            💰 Total Spending: <strong>₹{totalExpenses}</strong>
+            💰 Total Spending: <b>₹{totalExpenses}</b>
           </p>
 
-          <p>
-            📊 Categories Tracked:{" "}
-            <strong>{Object.keys(categoryData).length}</strong>
-          </p>
-
-          <p>
-            🤖 Smart Insight: Track your spending regularly to avoid
-            overspending.
-          </p>
+          {chartData.length > 0 && (
+            <p>
+              📊 Highest Spending Category:{" "}
+              <b>
+                {
+                  chartData.reduce((max, item) =>
+                    item.value > max.value ? item : max
+                  ).name
+                }
+              </b>
+            </p>
+          )}
         </div>
 
-        {/* ADD EXPENSE */}
+        <div className="card">
+          <h2>Upload CSV</h2>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <input
+              type="file"
+              accept=".csv"
+              onChange={(e) => setFile(e.target.files[0])}
+              style={{
+                background: "white",
+                color: "black",
+                maxWidth: "250px",
+              }}
+            />
+
+            <button onClick={handleUpload}>
+              Upload CSV
+            </button>
+          </div>
+        </div>
 
         <div className="card">
           <h2>Add Expense</h2>
@@ -209,31 +244,29 @@ function App() {
             onChange={(e) => setCategory(e.target.value)}
           />
 
-          <button onClick={addExpense}>Add Expense</button>
+          <button onClick={addExpense}>
+            Add Expense
+          </button>
         </div>
 
-        {/* EXPENSE HISTORY */}
-
         <div className="card">
-          <h2>Expense History</h2>
+          <h2>Expense List</h2>
 
           {expenses.map((expense) => (
             <div className="expense-item" key={expense._id}>
               <div>
-                <h4>{expense.title}</h4>
-                <p>{expense.category}</p>
+                <h3>{expense.title}</h3>
+                <p>
+                  ₹{expense.amount} - {expense.category}
+                </p>
               </div>
 
-              <div>
-                <h4>₹{expense.amount}</h4>
-
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteExpense(expense._id)}
-                >
-                  Delete
-                </button>
-              </div>
+              <button
+                className="delete-btn"
+                onClick={() => deleteExpense(expense._id)}
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>

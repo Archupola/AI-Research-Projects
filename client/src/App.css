@@ -101,3 +101,16 @@ button {
 .delete-btn {
   background: crimson;
 }
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark p,
+.dark label {
+  color: white;
+}
+
+.dark .warning {
+  color: #ff6b6b;
+}
