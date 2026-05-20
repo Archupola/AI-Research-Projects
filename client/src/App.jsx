@@ -2,32 +2,39 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
 function App() {
   const [expenses, setExpenses] = useState([]);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
-  const [budget, setBudget] = useState(5000);
+  const [budget, setBudget] = useState(20000);
   const [darkMode, setDarkMode] = useState(false);
 
   const API_URL =
     "https://ai-research-projects.onrender.com/api/expenses";
 
-  // FETCH EXPENSES
-  const fetchExpenses = async () => {
-    try {
-      const res = await axios.get(API_URL);
-      setExpenses(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
     fetchExpenses();
   }, []);
 
-  // ADD EXPENSE
+  const fetchExpenses = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setExpenses(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const addExpense = async () => {
     if (!title || !amount || !category) {
       alert("Please fill all fields");
@@ -46,22 +53,20 @@ function App() {
       setCategory("");
 
       fetchExpenses();
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // DELETE EXPENSE
   const deleteExpense = async (id) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchExpenses();
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // TOTAL EXPENSES
   const totalExpenses = expenses.reduce(
     (acc, item) => acc + Number(item.amount),
     0
@@ -69,14 +74,37 @@ function App() {
 
   const remainingBalance = budget - totalExpenses;
 
-  return (
-    <div className={darkMode ? "app dark" : "app light"}>
-      <div className="container">
-        <h1>Smart Finance Dashboard</h1>
+  const categoryData = {};
 
-        {/* DARK MODE */}
+  expenses.forEach((expense) => {
+    if (categoryData[expense.category]) {
+      categoryData[expense.category] += Number(expense.amount);
+    } else {
+      categoryData[expense.category] = Number(expense.amount);
+    }
+  });
+
+  const pieData = Object.keys(categoryData).map((key) => ({
+    name: key,
+    value: categoryData[key],
+  }));
+
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#AA00FF",
+    "#FF4560",
+  ];
+
+  return (
+    <div className={darkMode ? "app dark" : "app"}>
+      <div className="container">
+        <h1 className="main-heading">Smart Finance Dashboard</h1>
+
         <button
-          className="dark-btn"
+          className="mode-btn"
           onClick={() => setDarkMode(!darkMode)}
         >
           {darkMode ? "Light Mode" : "Dark Mode"}
@@ -84,20 +112,15 @@ function App() {
 
         <h2>Dashboard</h2>
 
-        {/* BUDGET */}
-        <div className="budget-section">
+        <div className="card">
           <h3>Monthly Budget</h3>
 
           <input
             type="number"
             value={budget}
             onChange={(e) => setBudget(Number(e.target.value))}
-            placeholder="Enter Budget"
           />
-        </div>
 
-        {/* TOTAL */}
-        <div className="summary">
           <h3>Total Expenses</h3>
           <p>₹{totalExpenses}</p>
 
@@ -106,21 +129,42 @@ function App() {
 
           {remainingBalance < 0 && (
             <p className="warning">
-              ⚠ Warning: You have exceeded your monthly budget!
+              ⚠ Warning: You exceeded your budget!
             </p>
           )}
         </div>
 
-        {/* ANALYTICS */}
-        <div className="analytics">
+        {/* PIE CHART */}
+
+        <div className="chart-box">
           <h2>Expense Analytics</h2>
 
-          <div className="chart-placeholder">
-            📊 Pie Chart Analytics Coming Here
-          </div>
+          <ResponsiveContainer width="100%" height={350}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                dataKey="value"
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* AI INSIGHTS */}
+
         <div className="insights">
           <h2>AI Insights</h2>
 
@@ -129,18 +173,19 @@ function App() {
           </p>
 
           <p>
-            📊 Highest Spending Category: <strong>Shopping</strong>
+            📊 Categories Tracked:{" "}
+            <strong>{Object.keys(categoryData).length}</strong>
           </p>
 
           <p>
-            🤖 Insight: You are spending the most on{" "}
-            <strong>Shopping</strong>. Consider reducing expenses in this
-            category.
+            🤖 Smart Insight: Track your spending regularly to avoid
+            overspending.
           </p>
         </div>
 
         {/* ADD EXPENSE */}
-        <div className="add-expense">
+
+        <div className="card">
           <h2>Add Expense</h2>
 
           <input
@@ -167,19 +212,20 @@ function App() {
           <button onClick={addExpense}>Add Expense</button>
         </div>
 
-        {/* EXPENSE LIST */}
-        <div className="expense-list">
+        {/* EXPENSE HISTORY */}
+
+        <div className="card">
           <h2>Expense History</h2>
 
           {expenses.map((expense) => (
-            <div className="expense-card" key={expense._id}>
+            <div className="expense-item" key={expense._id}>
               <div>
-                <h3>{expense.title}</h3>
+                <h4>{expense.title}</h4>
                 <p>{expense.category}</p>
               </div>
 
               <div>
-                <h3>₹{expense.amount}</h3>
+                <h4>₹{expense.amount}</h4>
 
                 <button
                   className="delete-btn"

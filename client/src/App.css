@@ -5,12 +5,9 @@ body {
 
 .app {
   min-height: 100vh;
+  background: #f4f7fb;
+  color: black;
   transition: 0.3s;
-}
-
-.light {
-  background: #f5f7fb;
-  color: #111;
 }
 
 .dark {
@@ -21,57 +18,65 @@ body {
 .container {
   max-width: 900px;
   margin: auto;
-  padding: 30px;
+  padding: 20px;
 }
 
-h1 {
+.main-heading {
   text-align: center;
-  font-size: 50px;
+  font-size: 55px;
   margin-bottom: 20px;
 }
 
-h2,
-h3 {
-  text-align: center;
+.dark .main-heading {
+  color: white;
 }
 
-.dark-btn {
+.mode-btn {
   display: block;
   margin: auto;
-  margin-bottom: 20px;
   padding: 12px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: royalblue;
   color: white;
-  font-size: 16px;
   cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.card,
+.chart-box,
+.insights {
+  background: white;
+  padding: 25px;
+  margin-top: 25px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.dark .card,
+.dark .chart-box,
+.dark .insights {
+  background: #1f2937;
+  color: white;
 }
 
 input {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
   border-radius: 8px;
   border: 1px solid gray;
-  font-size: 16px;
   box-sizing: border-box;
 }
 
 button {
-  padding: 12px 18px;
+  margin-top: 15px;
+  padding: 12px 20px;
   border: none;
   border-radius: 8px;
   background: royalblue;
   color: white;
-  font-size: 16px;
   cursor: pointer;
-  margin-top: 15px;
-}
-
-.summary {
-  text-align: center;
-  margin-top: 30px;
 }
 
 .warning {
@@ -79,77 +84,18 @@ button {
   font-weight: bold;
 }
 
-/* ANALYTICS */
-.analytics {
-  margin-top: 40px;
-}
-
-.chart-placeholder {
-  margin-top: 20px;
-  padding: 60px;
-  border-radius: 12px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.light .chart-placeholder {
-  background: #dbeafe;
-  color: #111;
-}
-
-.dark .chart-placeholder {
-  background: #1f2937;
-  color: white;
-}
-
-/* AI INSIGHTS */
-.insights {
-  margin-top: 40px;
-  padding: 25px;
-  border-radius: 12px;
-}
-
-.light .insights {
-  background: #e5e7eb;
-  color: #111;
-}
-
-.dark .insights {
-  background: #1f2937;
-  color: white;
-}
-
-.insights p {
-  font-size: 18px;
-  margin: 15px 0;
-}
-
-/* ADD EXPENSE */
-.add-expense {
-  margin-top: 40px;
-}
-
-/* EXPENSE LIST */
-.expense-list {
-  margin-top: 40px;
-}
-
-.expense-card {
+.expense-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px;
+  padding: 15px;
   margin-top: 15px;
   border-radius: 10px;
+  background: #f1f5f9;
 }
 
-.light .expense-card {
-  background: white;
-}
-
-.dark .expense-card {
-  background: #1f2937;
+.dark .expense-item {
+  background: #374151;
 }
 
 .delete-btn {
